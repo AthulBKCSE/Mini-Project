@@ -1,0 +1,275 @@
+Here's a detailed explanation of the CMD TypeSwift Typing Tutor software code in plain text format suitable for a Word document:
+
+CMD TypeSwift Typing Tutor - Detailed Code Explanation
+
+Software Overview:
+CMD TypeSwift is a terminal-based typing tutor designed to help users improve their typing speed and accuracy while learning programming concepts. The software features a user system with admin and regular user roles, multiple typing lessons, real-time feedback, and detailed statistics tracking.
+
+Core Components:
+
+1. Data Structures:
+
+User Structure:
+- Stores username and password
+- Tracks typing statistics (correct/incorrect characters, time spent, sessions)
+- Records last login time
+- Admin flag for privilege management
+
+Lesson Structure:
+- Contains lesson title and filename
+- Stores lesson content text
+- Includes difficulty level (1-5)
+- Has category field for organization
+
+2. File System Management:
+
+Directory Structure:
+- USER_DIR (.typeswift_users) - Stores user data files
+- LESSON_DIR (.typeswift_lessons) - Stores lesson files
+- CONFIG_FILE (.typeswift_config) - Stores application settings
+- LOG_FILE (.typeswift_log.txt) - Logs user activities
+
+Key Functions:
+
+1. Initialization Functions:
+
+initDirectories():
+- Creates necessary directories if they don't exist
+- Sets proper permissions for security
+- Handles error cases for directory creation
+
+loadUsers():
+- Reads user data from binary file
+- Handles file corruption cases
+- Initializes default admin if no users exist
+
+saveUsers():
+- Writes user data to binary file
+- Implements file locking for data integrity
+- Creates backup before overwriting
+
+loadLessons():
+- Loads built-in programming concept lessons
+- Scans lesson directory for custom lessons
+- Validates lesson file integrity
+- Sorts lessons by difficulty
+
+2. User Interface Functions:
+
+login():
+- Handles user authentication
+- Provides password masking
+- Implements login attempt limiting
+- Updates last login timestamp
+
+adminMenu():
+- Provides admin-specific options
+- User management functions
+- Lesson management functions
+- System configuration
+
+userMenu():
+- Standard user interface
+- Lesson selection
+- Statistics viewing
+- Custom lesson options
+
+3. Lesson Management Functions:
+
+runLesson():
+- Displays lesson text
+- Tracks typing progress
+- Provides real-time feedback
+- Calculates speed and accuracy
+- Handles lesson interruption
+
+runCustomLesson():
+- Loads text from myown.txt
+- Validates file existence
+- Checks for empty content
+- Provides same features as regular lessons
+
+addCustomLesson():
+- Admin-only function
+- Validates lesson title
+- Handles content input
+- Generates proper filename
+- Saves to lesson directory
+
+4. Statistics Functions:
+
+displayStats():
+- Calculates WPM and CPM
+- Computes accuracy percentage
+- Shows session and cumulative stats
+- Formats output clearly
+- Provides performance analysis
+
+printColoredText():
+- Compares typed vs original text
+- Uses color coding (green/red)
+- Handles special characters
+- Maintains proper alignment
+- Preserves original formatting
+
+5. User Management Functions:
+
+createUser():
+- Validates username uniqueness
+- Enforces password requirements
+- Handles admin privilege assignment
+- Initializes user statistics
+- Updates user count
+
+deleteUser():
+- Admin verification
+- Prevents self-deletion
+- Confirms deletion
+- Maintains data integrity
+- Updates user records
+
+viewAllUsers():
+- Formats tabular output
+- Calculates aggregate stats
+- Sorts user display
+- Protects sensitive data
+- Provides admin controls
+
+6. Utility Functions:
+
+logActivity():
+- Timestamps activities
+- Records user actions
+- Limits log file size
+- Handles write failures
+- Maintains activity trail
+
+backupData():
+- Creates timestamped backups
+- Compresses user data
+- Verifies backup integrity
+- Provides restore points
+- Manages backup rotation
+
+Technical Implementation Details:
+
+1. Memory Management:
+- Uses fixed-size arrays for data storage
+- Implements bounds checking
+- Handles buffer overflows
+- Manages string termination
+- Includes memory validation
+
+2. Error Handling:
+- Validates file operations
+- Checks user input
+- Handles system errors
+- Provides user feedback
+- Maintains state consistency
+
+3. Security Features:
+- Password protection
+- Data encryption
+- Input sanitization
+- Permission checks
+- Session management
+
+4. Performance Optimization:
+- Minimizes file I/O
+- Reduces screen redraws
+- Optimizes string handling
+- Caches frequent data
+- Manages resource usage
+
+Code Structure Breakdown:
+
+1. Header Section:
+- Includes necessary libraries
+- Defines constants
+- Declares structures
+- Lists function prototypes
+
+2. Main Function:
+- Initializes system
+- Handles command line args
+- Manages main loop
+- Cleans up resources
+- Returns status codes
+
+3. Core Modules:
+- User management
+- Lesson handling
+- Statistics tracking
+- Interface rendering
+- Data persistence
+
+4. Support Functions:
+- String utilities
+- File operations
+- Time calculations
+- Format conversion
+- System integration
+
+Key Algorithms:
+
+1. Typing Analysis:
+- Character-by-character comparison
+- Error detection
+- Speed calculation
+- Accuracy measurement
+- Performance metrics
+
+2. Text Processing:
+- Line wrapping
+- Tab expansion
+- Special character handling
+- Whitespace preservation
+- Format maintenance
+
+3. Data Analysis:
+- Trend calculation
+- Progress tracking
+- Benchmark comparison
+- Performance prediction
+- Goal setting
+
+Development Considerations:
+
+1. Portability:
+- Standard C compliance
+- Terminal compatibility
+- Path handling
+- Line ending support
+- Character encoding
+
+2. Extensibility:
+- Modular design
+- Clear interfaces
+- Configuration options
+- Plugin architecture
+- Update mechanism
+
+3. Usability:
+- Help system
+- Error messages
+- Keyboard controls
+- Display formatting
+- Accessibility
+
+4. Testing:
+- Unit tests
+- Integration tests
+- User scenarios
+- Edge cases
+- Performance profiling
+
+This detailed explanation covers all major aspects of the CMD TypeSwift Typing Tutor implementation. The code follows best practices for terminal application development while providing all the requested features from the SDS document.
+
+The software architecture emphasizes:
+- Clear separation of concerns
+- Modular component design
+- Robust error handling
+- Secure data management
+- Intuitive user interaction
+
+Each function includes appropriate validation and error checking to ensure system stability. The interface provides immediate feedback while maintaining responsiveness during typing sessions.
