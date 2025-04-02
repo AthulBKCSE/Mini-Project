@@ -1,4 +1,3 @@
-Source code:
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,10 +7,13 @@ Source code:
 #include <unistd.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <errno.h>
 
-#define MAX_LESSONS 10
-#define MAX_TEXT_LENGTH 1000
-#define MAX_LINE_LENGTH 100
+#define MAX_LESSONS 30
+#define MAX_TEXT_LENGTH 2000
+#define MAX_LINE_LENGTH 256
+#define MAX_PATH_LENGTH 512
+#define MAX_FILENAME_LENGTH 256
 #define MAX_USERS 10
 #define USER_DIR "users"
 #define LESSON_DIR "lessons"
@@ -38,6 +40,7 @@ User currentUser;
 Lesson lessons[MAX_LESSONS];
 int lessonCount = 0;
 
+
 void initDirectories();
 void loadUsers();
 void saveUsers();
@@ -58,8 +61,30 @@ void viewAllUsers();
 void addNewLesson();
 void manageLessons();
 
+int getNumberInput(int max_options) {
+    char input[10];
+    int choice = 0;
+    
+    echo(); // Show user input
+    getstr(input);
+    noecho();
+    
+    choice = atoi(input); // Convert string to number
+    
+    // Validate input
+    while (choice < 1 || choice > max_options) {
+        printw("Invalid choice! Enter a number (1-%d): ", max_options);
+        refresh();
+        echo();
+        getstr(input);
+        noecho();
+        choice = atoi(input);
+    }
+    
+    return choice;
+}
+
 void initDirectories() {
-    // Create directories if they don't exist
     mkdir(USER_DIR, 0700);
     mkdir(LESSON_DIR, 0700);
 }
@@ -89,29 +114,227 @@ void loadLessons() {
     struct dirent *ent;
     int i = 0;
     
-    // Load built-in lessons
-    strcpy(lessons[i].title, "1. Basic Programming Concepts");
+    // 1. C Programming - Expanded with more theory
+    strcpy(lessons[i].title, "1. C Programming Fundamentals");
     strcpy(lessons[i].filename, "builtin1.txt");
-    strcpy(lessons[i].content, "Programming is the process of creating a set of instructions that tell a computer how to perform a task. Programming can be done using a variety of computer programming languages, such as C, Python, Java, and more. The basic concepts include variables, loops, conditionals, functions, and data structures.");
+    strcpy(lessons[i].content, 
+        "C Programming Fundamentals\n"
+        "=========================\n\n"
+        "The C programming language is a powerful general-purpose language developed by Dennis Ritchie at Bell Labs in 1972. "
+        "It was created to write the UNIX operating system and has since become one of the most widely used programming languages.\n\n"
+        "Key Features of C:\n"
+        "- Procedural language with structured programming\n"
+        "- Low-level access to memory via pointers\n"
+        "- Simple set of keywords\n"
+        "- Efficient and fast execution\n"
+        "- Highly portable (platform-independent)\n\n"
+        "Basic Structure of a C Program:\n"
+        "Every C program consists of one or more functions. The main() function is where program execution begins.\n\n"
+        "#include <stdio.h>  // Standard Input/Output header\n"
+        "#include <stdlib.h> // Standard Library header\n\n"
+        "int main() {\n"
+        "    // Variable declaration\n"
+        "    int number = 42;\n"
+        "    \n"
+        "    // Output using printf\n"
+        "    printf(\"Hello, World!\\n\");\n"
+        "    printf(\"The answer is %d\\n\", number);\n"
+        "    \n"
+        "    // Return statement\n"
+        "    return EXIT_SUCCESS;\n"
+        "}\n\n"
+        "Data Types in C:\n"
+        "- int: integer numbers\n"
+        "- float: single-precision floating point\n"
+        "- double: double-precision floating point\n"
+        "- char: single character\n"
+        "- void: indicates no type\n\n"
+        "Control Structures:\n"
+        "C provides standard control structures like if-else, for, while, and switch-case for program flow control.\n");
     i++;
-    
-    strcpy(lessons[i].title, "2. Variables and Data Types");
+
+    // 2. Data Structures - Expanded with more theory
+    strcpy(lessons[i].title, "2. Data Structures in C");
     strcpy(lessons[i].filename, "builtin2.txt");
-    strcpy(lessons[i].content, "In programming, a variable is a container for storing data values. Different data types include integers (int), floating-point numbers (float), characters (char), and boolean values (bool). For example: int age = 25; float price = 9.99; char grade = 'A'; bool is_valid = true;");
+    strcpy(lessons[i].content,
+        "Data Structures in C\n"
+        "====================\n\n"
+        "Data structures are specialized formats for organizing, processing, retrieving and storing data. "
+        "They provide a means to manage large amounts of data efficiently for uses such as large databases "
+        "and internet indexing services.\n\n"
+        "Common Data Structures:\n"
+        "1. Arrays: Contiguous memory locations storing elements of the same type\n"
+        "2. Linked Lists: Collection of nodes containing data and pointer to next node\n"
+        "3. Stacks: LIFO (Last In First Out) structure\n"
+        "4. Queues: FIFO (First In First Out) structure\n"
+        "5. Trees: Hierarchical structure with root and child nodes\n"
+        "6. Graphs: Collection of nodes connected by edges\n\n"
+        "Linked List Implementation:\n"
+        "A linked list is a linear data structure where each element is a separate object. Each element (node) "
+        "contains data and a reference (link) to the next node in the sequence.\n\n"
+        "typedef struct Node {\n"
+        "    int data;              // Data field\n"
+        "    struct Node* next;     // Pointer to next node\n"
+        "} Node;\n\n"
+        "// Function to create a new node\n"
+        "Node* createNode(int data) {\n"
+        "    Node* newNode = (Node*)malloc(sizeof(Node));\n"
+        "    if (newNode == NULL) {\n"
+        "        fprintf(stderr, \"Memory allocation failed\\n\");\n"
+        "        exit(EXIT_FAILURE);\n"
+        "    }\n"
+        "    newNode->data = data;\n"
+        "    newNode->next = NULL;\n"
+        "    return newNode;\n"
+        "}\n\n"
+        "Stack ADT (Abstract Data Type):\n"
+        "A stack is a LIFO structure with two main operations:\n"
+        "- push: Add an element to the top of the stack\n"
+        "- pop: Remove and return the top element\n\n"
+        "Applications of Data Structures:\n"
+        "- Arrays: Matrix operations, sorting algorithms\n"
+        "- Linked Lists: Dynamic memory allocation, undo functionality\n"
+        "- Stacks: Function calls, expression evaluation\n"
+        "- Queues: Printer spooling, CPU scheduling\n"
+        "- Trees: File systems, database indexing\n");
     i++;
-    
-    // Load custom lessons from files
+
+    // 3. Operating Systems - Expanded with more theory
+    strcpy(lessons[i].title, "3. Operating System Concepts");
+    strcpy(lessons[i].filename, "builtin3.txt");
+    strcpy(lessons[i].content,
+        "Operating System Concepts\n"
+        "========================\n\n"
+        "An operating system (OS) is system software that manages computer hardware, software resources, "
+        "and provides common services for computer programs. The OS acts as an intermediary between programs "
+        "and the computer hardware.\n\n"
+        "Key Functions of an OS:\n"
+        "1. Process Management: Creation, scheduling, termination of processes\n"
+        "2. Memory Management: Allocation and deallocation of memory space\n"
+        "3. File System Management: Creation, deletion, manipulation of files\n"
+        "4. Device Management: Communication with hardware devices\n"
+        "5. Security and Access Control: User authentication and authorization\n\n"
+        "Process States:\n"
+        "- New: The process is being created\n"
+        "- Ready: The process is waiting to be assigned to a processor\n"
+        "- Running: Instructions are being executed\n"
+        "- Waiting: The process is waiting for some event to occur\n"
+        "- Terminated: The process has finished execution\n\n"
+        "Memory Management Techniques:\n"
+        "1. Paging: Divides memory into fixed-size blocks called pages\n"
+        "2. Segmentation: Divides memory into segments of varying sizes\n"
+        "3. Virtual Memory: Allows execution of processes not completely in memory\n\n"
+        "File System Concepts:\n"
+        "- File: Collection of related information\n"
+        "- Directory: Container for files and other directories\n"
+        "- Path: Location of a file in the directory hierarchy\n"
+        "- Permissions: Read, write, execute rights for users\n\n"
+        "Common OS Examples:\n"
+        "- Windows (Windows 10, Windows Server)\n"
+        "- Unix/Linux (Ubuntu, CentOS, Red Hat)\n"
+        "- macOS (Darwin kernel)\n"
+        "- Mobile OS (Android, iOS)\n");
+    i++;
+
+    // 4. Computer Networks - Expanded with more theory
+    strcpy(lessons[i].title, "4. Computer Networking Fundamentals");
+    strcpy(lessons[i].filename, "builtin4.txt");
+    strcpy(lessons[i].content,
+        "Computer Networking Fundamentals\n"
+        "===============================\n\n"
+        "A computer network is a system that connects multiple computers to share resources and information. "
+        "Networks can be classified by their size, topology, and protocol used for communication.\n\n"
+        "Network Types:\n"
+        "- PAN (Personal Area Network): Bluetooth, USB connections\n"
+        "- LAN (Local Area Network): Office or home network\n"
+        "- MAN (Metropolitan Area Network): City-wide network\n"
+        "- WAN (Wide Area Network): Internet, global networks\n\n"
+        "OSI Model Layers:\n"
+        "7. Application: Provides network services to applications (HTTP, FTP)\n"
+        "6. Presentation: Data translation, encryption (SSL, JPEG)\n"
+        "5. Session: Establishes, manages, terminates connections (RPC, NetBIOS)\n"
+        "4. Transport: End-to-end connections, reliability (TCP, UDP)\n"
+        "3. Network: Logical addressing and routing (IP, ICMP)\n"
+        "2. Data Link: Physical addressing, error detection (Ethernet, PPP)\n"
+        "1. Physical: Raw bit transmission over physical medium (cables, WiFi)\n\n"
+        "TCP/IP Protocol Suite:\n"
+        "- Application Layer: HTTP, FTP, SMTP, DNS\n"
+        "- Transport Layer: TCP, UDP\n"
+        "- Internet Layer: IP, ICMP, ARP\n"
+        "- Network Access Layer: Ethernet, WiFi\n\n"
+        "Network Devices:\n"
+        "- Hub: Basic network device that broadcasts data\n"
+        "- Switch: Intelligent device that forwards data to specific devices\n"
+        "- Router: Connects different networks and routes packets\n"
+        "- Firewall: Security device that filters network traffic\n\n"
+        "IP Addressing:\n"
+        "- IPv4: 32-bit address (e.g., 192.168.1.1)\n"
+        "- IPv6: 128-bit address (e.g., 2001:0db8:85a3::8a2e:0370:7334)\n"
+        "- Subnet Mask: Determines network portion of IP address\n");
+    i++;
+
+    // 5. Algorithms - Expanded with more theory
+    strcpy(lessons[i].title, "5. Algorithm Design and Analysis");
+    strcpy(lessons[i].filename, "builtin5.txt");
+    strcpy(lessons[i].content,
+        "Algorithm Design and Analysis\n"
+        "============================\n\n"
+        "An algorithm is a finite sequence of well-defined instructions to solve a class of problems or perform a computation. "
+        "Algorithms are essential to computer science and software development.\n\n"
+        "Algorithm Characteristics:\n"
+        "- Input: Zero or more inputs\n"
+        "- Output: At least one output\n"
+        "- Definiteness: Clear and unambiguous instructions\n"
+        "- Finiteness: Must terminate after finite steps\n"
+        "- Effectiveness: Each step must be basic and executable\n\n"
+        "Algorithm Complexity:\n"
+        "1. Time Complexity: Amount of time taken by algorithm to run\n"
+        "2. Space Complexity: Amount of memory used by algorithm\n\n"
+        "Common Algorithmic Paradigms:\n"
+        "1. Divide and Conquer: Break problem into smaller subproblems\n"
+        "2. Dynamic Programming: Store results of subproblems to avoid recomputation\n"
+        "3. Greedy Algorithms: Make locally optimal choices at each stage\n"
+        "4. Backtracking: Try different solutions and backtrack on failure\n\n"
+        "Sorting Algorithms:\n"
+        "1. Bubble Sort: Repeatedly swaps adjacent elements if in wrong order\n"
+        "2. Selection Sort: Finds minimum element and swaps with first position\n"
+        "3. Insertion Sort: Builds final sorted array one item at a time\n"
+        "4. Merge Sort: Divide and conquer algorithm with O(n log n) complexity\n"
+        "5. Quick Sort: Efficient divide and conquer with partitioning\n\n"
+        "Example: Bubble Sort Implementation\n"
+        "void bubbleSort(int arr[], int n) {\n"
+        "    for (int i = 0; i < n-1; i++) {\n"
+        "        // Last i elements are already in place\n"
+        "        for (int j = 0; j < n-i-1; j++) {\n"
+        "            if (arr[j] > arr[j+1]) {\n"
+        "                // Swap arr[j] and arr[j+1]\n"
+        "                int temp = arr[j];\n"
+        "                arr[j] = arr[j+1];\n"
+        "                arr[j+1] = temp;\n"
+        "            }\n"
+        "        }\n"
+        "    }\n"
+        "}\n\n"
+        "Searching Algorithms:\n"
+        "1. Linear Search: Checks each element sequentially\n"
+        "2. Binary Search: Efficient search on sorted arrays\n"
+        "3. Hashing: Uses hash functions for constant time lookups\n");
+    i++;
+
+    lessonCount = i;
+
+    // Load custom lessons (unchanged from original)
     if ((dir = opendir(LESSON_DIR)) != NULL) {
         while ((ent = readdir(dir)) != NULL && i < MAX_LESSONS) {
             if (strstr(ent->d_name, ".txt") && strncmp(ent->d_name, "builtin", 7) != 0) {
-                char path[100];
-                snprintf(path, sizeof(path), "%s/%s", LESSON_DIR, ent->d_name);
+                char path[MAX_PATH_LENGTH];
+                snprintf(path, MAX_PATH_LENGTH, "%s/%s", LESSON_DIR, ent->d_name);
                 
                 FILE *file = fopen(path, "r");
                 if (file != NULL) {
                     strncpy(lessons[i].filename, ent->d_name, 50);
                     
-                    // Extract title from filename (remove .txt and capitalize)
+                    // Extract title from filename
                     strncpy(lessons[i].title, ent->d_name, 50);
                     char *dot = strchr(lessons[i].title, '.');
                     if (dot) *dot = '\0';
@@ -129,8 +352,9 @@ void loadLessons() {
             }
         }
         closedir(dir);
+        lessonCount = i;
     }
-    lessonCount = i;
+    printf("DEBUG: Loaded %d lessons\n", lessonCount);
 }
 
 int login() {
@@ -196,14 +420,13 @@ void adminMenu() {
         printw("3. View All Users\n");
         printw("4. User Mode\n");
         printw("5. Logout\n\n");
-        printw("Select an option: ");
+        printw("Select an option (1-5): ");
         refresh();
         
         choice = getch() - '0';
-        
         switch (choice) {
-            case 1:
-                clear();
+            case 1: 
+            clear();
                 printw("1. Create User\n");
                 printw("2. Delete User\n");
                 printw("3. Back\n\n");
@@ -215,17 +438,10 @@ void adminMenu() {
                     createUser();
                 } else if (userChoice == 2) {
                     deleteUser();
-                }
-                break;
-            case 2:
-                manageLessons();
-                break;
-            case 3:
-                viewAllUsers();
-                break;
-            case 4:
-                userMenu();
-                break;
+                } break;
+            case 2: manageLessons(); break;
+            case 3: viewAllUsers(); break;
+            case 4: userMenu(); break;
         }
     } while (choice != 5);
 }
@@ -234,11 +450,19 @@ void userMenu() {
     int choice;
     do {
         displayMenu();
-        choice = getch() - '0';
         
+        // Calculate total options (lessons + special options)
+        int total_options = lessonCount + 4;
+        
+        // Use our new input function
+        choice = getNumberInput(total_options);
+        
+        // Handle numbered lessons
         if (choice >= 1 && choice <= lessonCount) {
             runLesson(choice - 1);
-        } else if (choice == lessonCount + 1) {
+        } 
+        // Handle special options
+        else if (choice == lessonCount + 1) {
             runCustomLesson();
         } else if (choice == lessonCount + 2) {
             addCustomLesson();
@@ -257,13 +481,22 @@ void displayMenu() {
     printw("Welcome, %s%s\n\n", currentUser.username, currentUser.isAdmin ? " (Admin)" : "");
     
     printw("Main Menu:\n");
+    // Display all available lessons with proper numbering
     for (int i = 0; i < lessonCount; i++) {
-        printw("%s\n", lessons[i].title);
+        // Check if it's a built-in lesson (already has a number)
+        if (lessons[i].title[0] >= '0' && lessons[i].title[0] <= '9' && lessons[i].title[1] == '.') {
+            printw("%s\n", lessons[i].title); // Keep existing numbering
+        } else {
+            printw("%d. %s\n", i+1, lessons[i].title); // Add numbering for custom lessons
+        }
     }
+    
+    // Calculate special options (unchanged)
     printw("%d. Custom Lesson (from myown.txt)\n", lessonCount + 1);
     printw("%d. Add Custom Lesson\n", lessonCount + 2);
     printw("%d. Help\n", lessonCount + 3);
     printw("%d. Logout\n\n", lessonCount + 4);
+    
     printw("Select an option (1-%d): ", lessonCount + 4);
     refresh();
 }
@@ -478,11 +711,19 @@ void addCustomLesson() {
     
     clear();
     printw("Add New Lesson\n\n");
-    printw("Enter lesson title: ");
+    printw("Enter lesson title (max %d chars): ", MAX_FILENAME_LENGTH - 5);
     
     echo();
-    char title[50];
+    char title[MAX_FILENAME_LENGTH - 4]; // Leave room for ".txt" and null terminator
     getstr(title);
+    
+    // Validate title length
+    if (strlen(title) == 0) {
+        printw("\nError: Lesson title cannot be empty!\n");
+        refresh();
+        getch();
+        return;
+    }
     
     clear();
     printw("Add New Lesson: %s\n\n", title);
@@ -496,31 +737,58 @@ void addCustomLesson() {
         if (strlen(line) == 0 && strlen(content) > 0 && content[strlen(content)-1] == '\n') {
             break;
         }
-        strcat(content, line);
-        strcat(content, "\n");
+        if (strlen(content) + strlen(line) + 1 < MAX_TEXT_LENGTH) {
+            strcat(content, line);
+            strcat(content, "\n");
+        } else {
+            printw("\nError: Lesson content too long! Maximum %d characters allowed.\n", MAX_TEXT_LENGTH);
+            refresh();
+            getch();
+            return;
+        }
     }
+
+    // Create filename from title (safe version)
+    char filename[MAX_FILENAME_LENGTH];
+    snprintf(filename, sizeof(filename), "%.*s.txt", 
+            (int)(MAX_FILENAME_LENGTH - 5), title); // Ensure we don't overflow
     
-    // Create filename from title
-    char filename[50];
-    snprintf(filename, sizeof(filename), "%s.txt", title);
+    // Convert spaces to underscores and lowercase
     for (int i = 0; filename[i]; i++) {
         if (filename[i] == ' ') filename[i] = '_';
         filename[i] = tolower(filename[i]);
     }
     
+    // Create numbered title safely
+    char numberedTitle[50];
+    int max_title_len = sizeof(numberedTitle) - 10; // Reserve space for number and formatting
+    if (strlen(title) > max_title_len) {
+        title[max_title_len] = '\0'; // Truncate if necessary
+    }
+    snprintf(numberedTitle, sizeof(numberedTitle), "%d. %s", lessonCount+1, title);
+    
     // Save to file
-    char path[100];
+    char path[MAX_PATH_LENGTH];
     snprintf(path, sizeof(path), "%s/%s", LESSON_DIR, filename);
+    
     FILE *file = fopen(path, "w");
     if (file != NULL) {
         fputs(content, file);
         fclose(file);
-        printw("\nLesson saved successfully!\n");
         
-        // Reload lessons
-        loadLessons();
+        // Update lesson array
+        if (lessonCount < MAX_LESSONS) {
+            strcpy(lessons[lessonCount].title, numberedTitle);
+            strcpy(lessons[lessonCount].filename, filename);
+            strcpy(lessons[lessonCount].content, content);
+            lessonCount++;
+            
+            printw("\nLesson saved successfully as %s!\n", filename);
+        } else {
+            printw("\nError: Maximum number of lessons reached!\n");
+        }
     } else {
-        printw("\nError: Could not save lesson file\n");
+        printw("\nError: Could not save to %s\n", path);
     }
     
     printw("\nPress any key to return to menu...");
@@ -833,8 +1101,8 @@ int main() {
     keypad(stdscr, TRUE);
     
     // Initialize color pairs
-    init_pair(1, COLOR_GREEN, COLOR_BLACK); // Correct characters
-    init_pair(2, COLOR_RED, COLOR_BLACK);   // Incorrect characters
+    init_pair(1, COLOR_GREEN, COLOR_BLACK);
+    init_pair(2, COLOR_RED, COLOR_BLACK);
     
     // Main application loop
     while (1) {
