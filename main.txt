@@ -60,7 +60,40 @@ void deleteUser();
 void viewAllUsers();
 void addNewLesson();
 void manageLessons();
+// Helper to get numeric input
+int getNumericInput(int min, int max) {
+    char input[10];
+    int value = 0;
+    
+    echo();
+    curs_set(1);
+    getstr(input);
+    curs_set(0);
+    noecho();
+    
+    value = atoi(input);
+    
+    while (value < min || value > max) {
+        printw("Invalid input! Enter a number (%d-%d): ", min, max);
+        refresh();
+        echo();
+        curs_set(1);
+        getstr(input);
+        curs_set(0);
+        noecho();
+        value = atoi(input);
+    }
+    
+    return value;
+}
 
+// Helper to confirm actions
+int confirmAction(const char* message) {
+    printw("%s (y/n): ", message);
+    refresh();
+    int ch = getch();
+    return (ch == 'y' || ch == 'Y');
+}
 int getNumberInput(int max_options) {
     char input[10];
     int choice = 0;
@@ -448,28 +481,25 @@ void adminMenu() {
 
 void userMenu() {
     int choice;
+    int total_options = lessonCount + (currentUser.isAdmin ? 4 : 3);
+    
     do {
         displayMenu();
+        choice = getNumericInput(1, total_options);
         
-        // Calculate total options (lessons + special options)
-        int total_options = lessonCount + 4;
-        
-        // Use our new input function
-        choice = getNumberInput(total_options);
-        
-        // Handle numbered lessons
         if (choice >= 1 && choice <= lessonCount) {
             runLesson(choice - 1);
         } 
-        // Handle special options
         else if (choice == lessonCount + 1) {
             runCustomLesson();
-        } else if (choice == lessonCount + 2) {
+        }
+        else if (currentUser.isAdmin && choice == lessonCount + 2) {
             addCustomLesson();
-        } else if (choice == lessonCount + 3) {
+        }
+        else if (choice == total_options - 1) { // Help
             displayHelp();
         }
-    } while (choice != lessonCount + 4);
+    } while (choice != total_options); // Logout
 }
 
 void displayMenu() {
@@ -481,26 +511,26 @@ void displayMenu() {
     printw("Welcome, %s%s\n\n", currentUser.username, currentUser.isAdmin ? " (Admin)" : "");
     
     printw("Main Menu:\n");
-    // Display all available lessons with proper numbering
+    // Display all lessons with consistent numbering
     for (int i = 0; i < lessonCount; i++) {
-        // Check if it's a built-in lesson (already has a number)
-        if (lessons[i].title[0] >= '0' && lessons[i].title[0] <= '9' && lessons[i].title[1] == '.') {
-            printw("%s\n", lessons[i].title); // Keep existing numbering
-        } else {
-            printw("%d. %s\n", i+1, lessons[i].title); // Add numbering for custom lessons
-        }
+        printw("%d. %s\n", i+1, 
+              (lessons[i].title[0] >= '0' && lessons[i].title[0] <= '9' && lessons[i].title[1] == '.') 
+              ? lessons[i].title + 3  // Skip existing numbering
+              : lessons[i].title);
     }
     
-    // Calculate special options (unchanged)
-    printw("%d. Custom Lesson (from myown.txt)\n", lessonCount + 1);
-    printw("%d. Add Custom Lesson\n", lessonCount + 2);
-    printw("%d. Help\n", lessonCount + 3);
-    printw("%d. Logout\n\n", lessonCount + 4);
+    // Calculate special options
+    int nextOption = lessonCount + 1;
+    printw("%d. Custom Lesson (from myown.txt)\n", nextOption++);
+    if (currentUser.isAdmin) {
+        printw("%d. Add Custom Lesson\n", nextOption++);
+    }
+    printw("%d. Help\n", nextOption++);
+    printw("%d. Logout\n\n", nextOption);
     
-    printw("Select an option (1-%d): ", lessonCount + 4);
+    printw("Select an option (1-%d): ", nextOption);
     refresh();
 }
-
 void runLesson(int lessonIndex) {
     if (lessonIndex < 0 || lessonIndex >= lessonCount) {
         printw("Invalid lesson selection!\n");
@@ -1039,23 +1069,65 @@ void manageLessons() {
         printw("2. Delete Lesson\n");
         printw("3. View All Lessons\n");
         printw("4. Back to Admin Menu\n\n");
-        printw("Select an option: ");
+        printw("Select an option (1-4): ");
         refresh();
         
-        choice = getch() - '0';
+        choice = getNumericInput(1, 4);
         
         switch (choice) {
             case 1:
-                addNewLesson();
+                addCustomLesson();
                 break;
+                
             case 2:
-                // Delete lesson functionality would go here
+                if (lessonCount <= 5) { // Keep built-in lessons
+                    clear();
+                    printw("Cannot delete built-in lessons!\n");
+                    printw("Only custom lessons can be deleted.\n");
+                    printw("\nPress any key to continue...");
+                    refresh();
+                    getch();
+                    break;
+                }
+                
                 clear();
-                printw("Not implemented in this demo\n");
-                printw("Press any key to continue...");
+                printw("Delete Lesson\n\n");
+                printw("Select lesson to delete:\n");
+                
+                // Show only deletable lessons (skip built-ins)
+                for (int i = 5; i < lessonCount; i++) {
+                    printw("%d. %s\n", i-4, lessons[i].title);
+                }
+                printw("%d. Cancel\n\n", lessonCount-4);
+                printw("Select option (1-%d): ", lessonCount-4);
                 refresh();
-                getch();
+                
+                int lessonChoice = getNumericInput(1, lessonCount-4);
+                if (lessonChoice == lessonCount-4) break;
+                
+                int lessonIndex = lessonChoice + 4; // Account for built-ins
+                if (confirmAction("Are you sure you want to delete this lesson?")) {
+                    char path[MAX_PATH_LENGTH];
+                    snprintf(path, sizeof(path), "%s/%s", LESSON_DIR, lessons[lessonIndex].filename);
+                    
+                    if (remove(path) == 0) {
+                        // Shift array to remove lesson
+                        for (int i = lessonIndex; i < lessonCount-1; i++) {
+                            lessons[i] = lessons[i+1];
+                        }
+                        lessonCount--;
+                        saveUsers();
+                        
+                        printw("\nLesson deleted successfully!\n");
+                    } else {
+                        printw("\nError: Could not delete file %s\n", path);
+                    }
+                    printw("\nPress any key to continue...");
+                    refresh();
+                    getch();
+                }
                 break;
+                
             case 3:
                 clear();
                 printw("Available Lessons:\n\n");
@@ -1069,7 +1141,6 @@ void manageLessons() {
         }
     } while (choice != 4);
 }
-
 void addNewLesson() {
     addCustomLesson();
 }
