@@ -481,56 +481,86 @@ void adminMenu() {
 
 void userMenu() {
     int choice;
-    int total_options = lessonCount + (currentUser.isAdmin ? 4 : 3);
+    int max_option = currentUser.isAdmin ? 5 : 4;
     
     do {
-        displayMenu();
-        choice = getNumericInput(1, total_options);
+        displayMainMenu();
+        choice = getNumericInput(1, max_option);
         
-        if (choice >= 1 && choice <= lessonCount) {
-            runLesson(choice - 1);
-        } 
-        else if (choice == lessonCount + 1) {
-            runCustomLesson();
+        switch (choice) {
+            case 1:
+                lessonsMenu();
+                break;
+            case 2:
+                runCustomLesson();
+                break;
+            case 3:
+                if (currentUser.isAdmin) {
+                    addCustomLesson();
+                } else {
+                    displayHelp();
+                }
+                break;
+            case 4:
+                if (currentUser.isAdmin) {
+                    displayHelp();
+                } else {
+                    return; // Logout
+                }
+                break;
+            case 5:
+                return; // Logout for admin
         }
-        else if (currentUser.isAdmin && choice == lessonCount + 2) {
-            addCustomLesson();
-        }
-        else if (choice == total_options - 1) { // Help
-            displayHelp();
-        }
-    } while (choice != total_options); // Logout
+    } while (1);
 }
 
-void displayMenu() {
+void displayMainMenu() {
     clear();
     printw("========================================\n");
-    printw("      CMD TypeSwift - Typing Tutor      \n");
+    printw("      CMD TypeSwift - Main Menu         \n");
     printw("========================================\n\n");
     
     printw("Welcome, %s%s\n\n", currentUser.username, currentUser.isAdmin ? " (Admin)" : "");
     
-    printw("Main Menu:\n");
-    // Display all lessons with consistent numbering
-    for (int i = 0; i < lessonCount; i++) {
-        printw("%d. %s\n", i+1, 
-              (lessons[i].title[0] >= '0' && lessons[i].title[0] <= '9' && lessons[i].title[1] == '.') 
-              ? lessons[i].title + 3  // Skip existing numbering
-              : lessons[i].title);
-    }
-    
-    // Calculate special options
-    int nextOption = lessonCount + 1;
-    printw("%d. Custom Lesson (from myown.txt)\n", nextOption++);
+    printw("1. Lessons Menu\n");
+    printw("2. Custom Lesson (from myown.txt)\n");
     if (currentUser.isAdmin) {
-        printw("%d. Add Custom Lesson\n", nextOption++);
+        printw("3. Add Custom Lesson\n");
     }
-    printw("%d. Help\n", nextOption++);
-    printw("%d. Logout\n\n", nextOption);
+    printw("%d. Help\n", currentUser.isAdmin ? 4 : 3);
+    printw("%d. Logout\n\n", currentUser.isAdmin ? 5 : 4);
     
-    printw("Select an option (1-%d): ", nextOption);
+    printw("Select an option (1-%d): ", currentUser.isAdmin ? 5 : 4);
     refresh();
 }
+void lessonsMenu() {
+    int choice;
+    do {
+        clear();
+        printw("========================================\n");
+        printw("      CMD TypeSwift - Lessons Menu      \n");
+        printw("========================================\n\n");
+        
+        printw("Available Lessons:\n\n");
+        for (int i = 0; i < lessonCount; i++) {
+            // Skip the number if it's already in the title
+            const char* title = lessons[i].title;
+            if (title[0] >= '0' && title[0] <= '9' && title[1] == '.') {
+                title += 3;
+            }
+            printw("%d. %s\n", i+1, title);
+        }
+        printw("\n%d. Back to Main Menu\n\n", lessonCount+1);
+        printw("Select a lesson or go to main menu (1-%d): ", lessonCount+1);
+        refresh();
+        
+        choice = getNumericInput(1, lessonCount+1);
+        
+        if (choice >= 1 && choice <= lessonCount) {
+            runLesson(choice - 1);
+        }
+    } while (choice != lessonCount + 1);
+}    
 void runLesson(int lessonIndex) {
     if (lessonIndex < 0 || lessonIndex >= lessonCount) {
         printw("Invalid lesson selection!\n");
@@ -807,8 +837,11 @@ void addCustomLesson() {
         fclose(file);
         
         // Update lesson array
+        // Store with consistent numbering format
         if (lessonCount < MAX_LESSONS) {
-            strcpy(lessons[lessonCount].title, numberedTitle);
+            // Format as "X. Title" where X is the lesson number
+            snprintf(lessons[lessonCount].title, sizeof(lessons[lessonCount].title), 
+            "%d. %s", lessonCount+1, title);
             strcpy(lessons[lessonCount].filename, filename);
             strcpy(lessons[lessonCount].content, content);
             lessonCount++;
@@ -1128,11 +1161,19 @@ void manageLessons() {
                 }
                 break;
                 
-            case 3:
+                case 3: // View All Lessons
                 clear();
-                printw("Available Lessons:\n\n");
+                printw("All Lessons (Admin View)\n\n");
+                printw("%-4s %-6s %-30s %s\n", "ID", "Type", "Title", "Filename");
+                printw("--------------------------------------------------\n");
+                
                 for (int i = 0; i < lessonCount; i++) {
-                    printw("%s (%s)\n", lessons[i].title, lessons[i].filename);
+                    const char* type = (i < 5) ? "Built-in" : "Custom";
+                    const char* title = lessons[i].title;
+                    if (title[0] >= '0' && title[0] <= '9' && title[1] == '.') {
+                        title += 3;
+                    }
+                    printw("%-4d %-6s %-30s (%s)\n", i+1, type, title, lessons[i].filename);
                 }
                 printw("\nPress any key to continue...");
                 refresh();
